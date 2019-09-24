@@ -15,27 +15,36 @@ import java.util.Date;
 @Data
 public class UploadFile {
 
-    /* uuid */
+    /**  uuid */
     @Id
-    private String fileId;
+    private String id;
 
-    /* 文件路径 */
-    private String filePath;
+    /**  文件路径 */
+    private String path;
 
-    /* 文件大小 */
-    private String fileSize;
+    /**  文件大小 */
+    private String size;
 
-    /* 文件后缀 */
-    private String fileSuffix;
+    /**  文件后缀 */
+    private String suffix;
 
-    /* 文件名字 */
-    private String fileName;
+    /**  文件名字 */
+    private String name;
 
-    /* 文件md5 */
+    /**  文件md5 */
     private String fileMd5;
 
-    /* 文件上传状态 */
-    private Integer fileStatus;
+    /**  文件上传状态 */
+    private Integer status;
+
+    /**  文件上传状态 */
+    private Integer deleted;
+
+    /**  文件一共分成了多少块 */
+    private Integer totalBlock;
+
+    /**  文件上传到第几个块了，从1开始 */
+    private Integer fileIndex;
 
     private Date createTime;
 

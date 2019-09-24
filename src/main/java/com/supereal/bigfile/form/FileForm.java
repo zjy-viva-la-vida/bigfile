@@ -11,7 +11,7 @@ public class FileForm {
 
     private String md5;
 
-    private String uuid;
+    private String fileId;
 
     private String date;
 

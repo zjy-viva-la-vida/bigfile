@@ -1,14 +1,18 @@
 package com.supereal.bigfile.controller;
 
 
+import com.supereal.bigfile.common.Constant;
+import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.utils.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -64,6 +68,28 @@ public class TestController {
         }
         log.info("启动线程后，当前线程总数为：" + bean.getThreadCount());
         return "当前线程总数为：" + bean.getThreadCount();
+
+    }
+
+
+    @GetMapping("/open")
+    public ModelAndView open() {
+
+        return new ModelAndView("test");
+    }
+
+    @PostMapping("/uploadAAA")
+    public Result upload(@Valid FileForm form, @RequestParam(value = "file", required = false) MultipartFile multipartFile) {
+
+
+        try {
+            multipartFile.transferTo(new File(Constant.PATH,form.getName()));
+
+            return Result.ok();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("上传失败：" + e.getMessage());
+        }
 
     }
 

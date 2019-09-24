@@ -6,7 +6,7 @@
     <script src="../static/js/md5.js"></script>
     <script type="text/javascript">
         var i = -1;
-        var shardSize = 1 * 1024 * 1024;    //以1MB为一个分片
+        var shardSize = 10 * 1024 * 1024;    //以1MB为一个分片
         var succeed = 0;
         var dataBegin;  //开始时间
         var dataEnd;    //结束时间
@@ -41,13 +41,14 @@
                     processData: false,  //很重要，告诉jquery不要对form进行处理
                     contentType: false,  //很重要，指定为false才能形成正确的Content-Type
                     success: function(data){
-                        var uuid = data.fileId;
+                        var fileId = data.fileId;
+                        console.info("fileId:",fileId)
                         if (data.flag == "0") {
                             //没有上传过文件
-                            realUpload(file,uuid,md5,data.date);
+                            realUpload(file,fileId,md5,data.date);
                         } else if(data.flag == "1") {
                             //已经上传部分
-                            realUpload(file,uuid,md5,data.date);
+                            realUpload(file,fileId,md5,data.date);
                         } else if(data.flag == "2") {
                             //文件已经上传过
                             alert("文件已经上传过,秒传了！！");
@@ -59,20 +60,24 @@
             })
         };
         
-        function realUpload(file, uuid, md5, date) {
+        function realUpload(file, fileId, md5, date) {
             name = file.name;
             size = file.size;
             var shardCount = Math.ceil(size / shardSize);  //总片数
-            if (i > shardCount) {
+
+            console.log('size,',size,'shardSize:',shardSize,'shardCount:',shardCount,'i:',i);
+            if (i+1 > shardCount) {
                 return;
             } else {
                 if (!action) {
                     i += 1;  //只有在检测分片时,i才去加1; 上传文件时无需加1
                 }
             }
+
             //计算每一片的起始与结束位置
             var start = i * shardSize;
             var end = Math.min(size, start + shardSize);
+            console.log("i:",i,"start:",start,"end:",end)
             //构造一个表单，FormData是HTML5新增的
             var form = new FormData();
             if (!action) {
@@ -83,7 +88,7 @@
                 form.append("data", file.slice(start, end));  //slice方法用于切出文件的一部分
                 $("#param").append("<br/>" + "action==upload ");
             }
-            form.append("uuid", uuid);
+            form.append("fileId", fileId);
             form.append("md5", md5);
             form.append("date", date);
             form.append("name", name);
@@ -97,7 +102,9 @@
             var data = file.slice(start, end);
             var r = new FileReader();
             r.readAsBinaryString(data);
+            console.log("index:",index)
             $(r).load(function (e) {
+                console.log("action:",action)
                 var bolb = e.target.result;
                 var partMd5 = hex_md5(bolb);
                 form.append("partMd5", partMd5);
@@ -110,7 +117,8 @@
                     processData: false,  //很重要，告诉jquery不要对form进行处理
                     contentType: false,  //很重要，指定为false才能形成正确的Content-Type
                     success: function (data) {
-                        var fileuuid = data.fileId;
+                        console.log("data:",data)
+                        var fileId = data.fileId;
                         var flag = data.flag;
                         if (flag != "2") {
                             //服务器返回该分片是否上传过
@@ -123,14 +131,14 @@
                                 ++succeed;
                                 $("#output").text(succeed + " / " + shardCount);
                             }
-                            realUpload(file, uuid, md5, date);
+                            realUpload(file, fileId, md5, date);
                         } else {
                             ++succeed;
                             $("#output").text(succeed + " / " + shardCount);
                             //服务器返回分片是否上传成功
                             if (succeed  == shardCount) {
                                 dataEnd = new Date();
-                                $("#uuid").append(fileuuid);
+                                $("#uuid").append(fileId);
                                 $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
                                 $("#useTime").append("s")
                                 $("#param").append("<br/>" + "上传成功！");

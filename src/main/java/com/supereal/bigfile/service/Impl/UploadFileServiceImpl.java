@@ -36,36 +36,48 @@ public class UploadFileServiceImpl implements UploadFileService {
         UploadFile uploadFile = uploadFileRepository.findByFileMd5(md5);
 
         Map<String, Object> map = null;
-        if (uploadFile == null) {
-            //没有上传过文件
-            map = new HashMap<>();
-            map.put("flag", 0);
-            map.put("fileId", KeyUtil.genUniqueKey());
-            map.put("date", simpleDateFormat.format(new Date()));
-        } else {
-            //上传过文件，判断文件现在还存在不存在
-            File file = new File(uploadFile.getFilePath());
 
-            if (file.exists()) {
-                if (uploadFile.getFileStatus() == 1) {
-                    //文件只上传了一部分
-                    map = new HashMap<>();
-                    map.put("flag", 1);
-                    map.put("fileId", uploadFile.getFileId());
-                    map.put("date", simpleDateFormat.format(new Date()));
-                } else if (uploadFile.getFileStatus() == 2) {
-                    //文件早已上传完整
-                    map = new HashMap<>();
-                    map.put("flag" , 2);
-                }
-            } else {
-
-                map = new HashMap<>();
-                map.put("flag", 0);
-                map.put("fileId", uploadFile.getFileId());
-                map.put("date", simpleDateFormat.format(new Date()));
-            }
+        String fileId = KeyUtil.genUniqueKey();
+        if(uploadFile != null){
+            fileId = uploadFile.getId();
         }
+
+        map = new HashMap<>();
+        map.put("flag", 0);
+        map.put("fileId",fileId);
+        map.put("date", simpleDateFormat.format(new Date()));
+
+
+//        if (uploadFile == null) {
+//            //没有上传过文件
+//            map = new HashMap<>();
+//            map.put("flag", 0);
+//            map.put("fileId", KeyUtil.genUniqueKey());
+//            map.put("date", simpleDateFormat.format(new Date()));
+//        } else {
+//            //上传过文件，判断文件现在还存在不存在
+//            File file = new File(uploadFile.getPath());
+//
+//            if (file.exists()) {
+//                if (uploadFile.getStatus() == 1) {
+//                    //文件只上传了一部分
+//                    map = new HashMap<>();
+//                    map.put("flag", 1);
+//                    map.put("fileId", uploadFile.getId());
+//                    map.put("date", simpleDateFormat.format(new Date()));
+//                } else if (uploadFile.getStatus() == 2) {
+//                    //文件早已上传完整
+//                    map = new HashMap<>();
+//                    map.put("flag" , 2);
+//                }
+//            } else {
+//
+//                map = new HashMap<>();
+//                map.put("flag", 0);
+//                map.put("fileId", uploadFile.getId());
+//                map.put("date", simpleDateFormat.format(new Date()));
+//            }
+//        }
         return map;
     }
 
@@ -73,7 +85,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public Map<String, Object> realUpload(FileForm form, MultipartFile multipartFile) throws Exception {
         String action = form.getAction();
-        String fileId = form.getUuid();
+        String fileId = form.getFileId();
         Integer index = Integer.valueOf(form.getIndex());
         String partMd5 = form.getPartMd5();
         String md5 = form.getMd5();
@@ -109,6 +121,8 @@ public class UploadFileServiceImpl implements UploadFileService {
                     return map;
             } else {
                 //分片未上传
+
+
                 map = new HashMap<>();
                 map.put("flag", "0");
                 map.put("fileId", fileId);
@@ -119,15 +133,41 @@ public class UploadFileServiceImpl implements UploadFileService {
             if (file.exists()) {
                 file.delete();
             }
+            //修改FileRes记录为上传成功
+            UploadFile uploadFile = new UploadFile();
+            uploadFile.setId(fileId);
+            uploadFile.setStatus(1);
+            uploadFile.setName(fileName);
+            uploadFile.setFileMd5(md5);
+            uploadFile.setSuffix(suffix);
+            uploadFile.setPath(filePath);
+            uploadFile.setSize(size);
+            uploadFile.setDeleted(0);
+            uploadFile.setTotalBlock(total);
+            uploadFile.setFileIndex(index);
+            uploadFileRepository.save(uploadFile);
+
+
+
+
+
+
             multipartFile.transferTo(new File(saveDirectory, fileId + "_" + index));
             map = new HashMap<>();
             map.put("flag", "1");
             map.put("fileId", fileId);
-            if(index != total)
+            if(index != total){
                 return map;
+            }
+
         }
 
         if (path.isDirectory()) {
+            File allFile = new File(filePath);
+            if (allFile.exists()) {
+                allFile.delete();
+            }
+
             File[] fileArray = path.listFiles();
             if (fileArray != null) {
                 if (fileArray.length == total) {
@@ -150,14 +190,16 @@ public class UploadFileServiceImpl implements UploadFileService {
                     outputStream.close();
                     //修改FileRes记录为上传成功
                     UploadFile uploadFile = new UploadFile();
-                    uploadFile.setFileId(fileId);
-                    uploadFile.setFileStatus(2);
-                    uploadFile.setFileName(fileName);
+                    uploadFile.setId(fileId);
+                    uploadFile.setStatus(2);
+                    uploadFile.setName(fileName);
                     uploadFile.setFileMd5(md5);
-                    uploadFile.setFileSuffix(suffix);
-                    uploadFile.setFilePath(filePath);
-                    uploadFile.setFileSize(size);
-
+                    uploadFile.setSuffix(suffix);
+                    uploadFile.setPath(filePath);
+                    uploadFile.setSize(size);
+                    uploadFile.setDeleted(0);
+                    uploadFile.setTotalBlock(total);
+                    uploadFile.setFileIndex(total);
                     uploadFileRepository.save(uploadFile);
 
                     map=new HashMap<>();
@@ -173,12 +215,15 @@ public class UploadFileServiceImpl implements UploadFileService {
                     if (name.length() > 32) {
                         name = name.substring(0, 32);
                     }
-                    uploadFile.setFileName(name);
-                    uploadFile.setFileSuffix(suffix);
-                    uploadFile.setFileId(fileId);
-                    uploadFile.setFilePath(filePath);
-                    uploadFile.setFileSize(size);
-                    uploadFile.setFileStatus(1);
+                    uploadFile.setName(name);
+                    uploadFile.setSuffix(suffix);
+                    uploadFile.setId(fileId);
+                    uploadFile.setPath(filePath);
+                    uploadFile.setSize(size);
+                    uploadFile.setStatus(1);
+                    uploadFile.setDeleted(0);
+                    uploadFile.setTotalBlock(total);
+                    uploadFile.setFileIndex(total);
 
                     uploadFileRepository.save(uploadFile);
                 }

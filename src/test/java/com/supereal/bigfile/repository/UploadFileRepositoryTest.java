@@ -25,12 +25,12 @@ public class UploadFileRepositoryTest {
     @Test
     public void save() {
         UploadFile uploadFile = new UploadFile();
-        uploadFile.setFileId(KeyUtil.genUniqueKey());
+        uploadFile.setId(KeyUtil.genUniqueKey());
         uploadFile.setFileMd5("123");
-        uploadFile.setFileName("123");
-        uploadFile.setFilePath("123");
-        uploadFile.setFileSize("123");
-        uploadFile.setFileSuffix("123");
+        uploadFile.setName("123");
+        uploadFile.setPath("123");
+        uploadFile.setSize("123");
+        uploadFile.setSuffix("123");
 
         repository.save(uploadFile);
 
