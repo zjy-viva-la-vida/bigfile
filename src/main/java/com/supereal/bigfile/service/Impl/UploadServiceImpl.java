@@ -171,7 +171,9 @@ public class UploadServiceImpl implements UploadService {
             }
             if(Objects.equals(fileSingleton.getFileIdsIndex(fileId),total)){
                 ThreadUtil.run(() ->{
+                    log.info("开始合并文件，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
                     fileSingleton.removeFileId(fileId);
+                    log.info("开始合并文件，删除单例数据后，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
                     combineAllFile(form);
                 });
             }
