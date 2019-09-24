@@ -11,6 +11,8 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, String> 
 
     UploadFile findByFileMd5(String fileMd5);
 
+    UploadFile findUploadFileById(String id);
+
     UploadFile findUploadFileByName(String fileName);
 
     void deleteByFileMd5(String fileMd5);

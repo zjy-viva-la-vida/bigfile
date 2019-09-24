@@ -20,22 +20,40 @@ public interface UploadService {
      */
     Result findByFileMd5(FileForm form);
 
+    /**
+     * 保存
+     * @param form
+     * @param saveDirectory
+     * @param status
+     * @param fileIndex
+     */
+    void saveUploadFile(FileForm form, String saveDirectory,Integer status,Integer fileIndex);
+
 
     /**
+     * 校验分片文件是否上传过
      * @param form
+     * @param combineFlag
      * @return
      */
     Result checkPartFileIsExist(FileForm form,boolean combineFlag);
 
     /**
-     * 上传文件
+     * 上分片文件
      * @param form 文件表单信息
      * @return
      */
     Result realUpload(FileForm form);
 
     /**
-     * 从队列中读取数据，上传文件
+     * 开始合并分片文件，合并前会做校验
+     * @param form
+     * @return
+     */
+    Result combineAllFile(FileForm form);
+
+    /**
+     * 从队列中读取数据，上传文件，暂时未用到
      * @return
      */
     Result realUploadByQueue();
