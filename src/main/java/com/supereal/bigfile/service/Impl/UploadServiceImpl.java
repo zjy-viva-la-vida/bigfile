@@ -165,22 +165,25 @@ public class UploadServiceImpl implements UploadService {
 
             try{
                 multipartFile.transferTo(new File(saveDirectory, fileId + "_" + index));
+                if(Objects.equals(fileSingleton.getFileIdsIndex(fileId),total)){
+                    //开一个线程单独去执行合并文件操作
+                    ThreadUtil.run(() ->{
+                        log.info("开始合并文件，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
+                        fileSingleton.removeFileId(fileId);
+                        log.info("开始合并文件，删除单例数据后，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
+                        combineAllFile(form);
+                    });
+                }
+                long end = System.currentTimeMillis();
+                log.info("完成上传分片111，index:" + form.getIndex() + ",total:" + total +
+                        ",已上传文件数：" + fileSingleton.getFileIdsIndex(fileId) + ",耗时：" + ( end - start )+ "毫秒");
+                return Result.ok("分片文件上传成功！");
             }catch (Exception e){
                 ExceptionRes res = ExceptionResponseUtil.spliceMsgFromException(e);
                 log.error("存储分片文件出错：" + res.getMsg());
+                return Result.ok("存储分片文件出错：" + res.getMsg());
             }
-            if(Objects.equals(fileSingleton.getFileIdsIndex(fileId),total)){
-                ThreadUtil.run(() ->{
-                    log.info("开始合并文件，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
-                    fileSingleton.removeFileId(fileId);
-                    log.info("开始合并文件，删除单例数据后，已上传文件数：" + fileSingleton.getFileIdsIndex(fileId));
-                    combineAllFile(form);
-                });
-            }
-            long end = System.currentTimeMillis();
-            log.info("完成上传分片111，index:" + form.getIndex() + ",total:" + total +
-                    ",已上传文件数：" + fileSingleton.getFileIdsIndex(fileId) + ",耗时：" + ( end - start )+ "毫秒");
-            return Result.ok("分片文件上传成功！");
+
         /*}else{
             combineAllFile(form);
             long end = System.currentTimeMillis();
