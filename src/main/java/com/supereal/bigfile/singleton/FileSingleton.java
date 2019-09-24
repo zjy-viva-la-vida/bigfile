@@ -1,6 +1,6 @@
-package com.supereal.bigfile.Singleton;
+package com.supereal.bigfile.singleton;
 
-import com.alibaba.fastjson.JSON;
+
 import com.alibaba.fastjson.JSONObject;
 import com.supereal.bigfile.form.FileForm;
 import lombok.extern.slf4j.Slf4j;
@@ -53,19 +53,19 @@ public class FileSingleton {
         return SingletonHolder.flag;
     }
 
-    public ConcurrentLinkedQueue<String> addMsgToQueue(String msg){
+    public synchronized ConcurrentLinkedQueue<String> addMsgToQueue(String msg){
         ConcurrentLinkedQueue<String> result = getStringQueueList();
         result.offer(msg);
         return result;
     }
 
-    public ConcurrentLinkedQueue<FileForm> addFileFormToQueue(FileForm form){
+    public synchronized ConcurrentLinkedQueue<FileForm> addFileFormToQueue(FileForm form){
         ConcurrentLinkedQueue<FileForm> result = getFileFormQueueList();
         result.offer(form);
         return result;
     }
 
-    public void setFlag(boolean flag){
+    public synchronized void setFlag(boolean flag){
         SingletonHolder.flag = flag;
     }
 
@@ -81,11 +81,11 @@ public class FileSingleton {
         return result;
     }
 
-    public void setFileIds(JSONObject fileIds){
+    public synchronized void setFileIds(JSONObject fileIds){
         SingletonHolder.fileIds = fileIds;
     }
 
-    public void setFileIdsIndex(String fileId){
+    public synchronized void setFileIdsIndex(String fileId){
         //将对应的fileId的文件存储数据加1
         JSONObject json = getFileIds();
         Integer index = getFileIdsIndex(fileId);

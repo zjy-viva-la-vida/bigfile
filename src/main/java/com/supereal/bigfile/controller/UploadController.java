@@ -1,17 +1,14 @@
 package com.supereal.bigfile.controller;
 
-import com.supereal.bigfile.Singleton.FileSingleton;
 import com.supereal.bigfile.form.FileForm;
-import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.service.UploadService;
 import com.supereal.bigfile.utils.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
-import java.util.Map;
 
 /**
  * Create by tianci
@@ -19,6 +16,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/uploadFile")
+@Slf4j
 public class UploadController {
 
     @Autowired
@@ -47,7 +45,7 @@ public class UploadController {
     @PostMapping("/uploadPartFile")
     public Result upload(@Valid FileForm form) {
         try {
-            Result result = uploadService.realUpload(form, form.getData());
+            Result result = uploadService.realUpload(form);
             return result;
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,4 +53,23 @@ public class UploadController {
         }
 
     }
+//
+//    @PostMapping("/uploadPartFileToQueue")
+//    public Result uploadPartFileToQueue(@Valid FileForm form) {
+//        try {
+//            FileSingleton fileSingleton = FileSingleton.getInstance();
+//            fileSingleton.addFileFormToQueue(form);
+//            if(fileSingleton.getFlag()){
+//                fileSingleton.setFlag(false);
+//                return uploadService.realUploadByQueue();
+//            }else{
+//                log.info("数据已放到队列中，未重复调用");
+//            }
+//            return Result.ok("文件上传中，请稍后");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return Result.error("上传失败：" + e.getMessage());
+//        }
+//
+//    }
 }

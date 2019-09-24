@@ -30,10 +30,15 @@ public interface UploadService {
     /**
      * 上传文件
      * @param form 文件表单信息
-     * @param multipartFile 文件
      * @return
      */
-    Result realUpload(FileForm form, MultipartFile multipartFile);
+    Result realUpload(FileForm form);
+
+    /**
+     * 从队列中读取数据，上传文件
+     * @return
+     */
+    Result realUploadByQueue();
 
 
 }

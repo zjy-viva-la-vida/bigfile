@@ -6,7 +6,7 @@
     <script src="../static/js/md5.js"></script>
     <script type="text/javascript">
 
-        var shardSize = 10 * 1024 * 1024;    //以10MB为一个分片
+        var shardSize = 20 * 1024 * 1024;    //以10MB为一个分片
         var succeed = 0;
         var dataBegin;  //开始时间
         var dataEnd;    //结束时间
@@ -97,43 +97,45 @@
                     /*let partMd5 = "3222222222";*/
                     form.append("partMd5", partMd5);
                     form.append("index", nowIndex);
-                    form.append("data", data);
+
                     console.info("partMd5",partMd5,"nowIndex",nowIndex);
                     //判断分片的文件是否已上传过，上传过就不重复上传
 
-                    upload(form,nowIndex,shardCount,fileId)
+                    /*form.append("data", data);
+                    upload(form,nowIndex,shardCount,fileId)*/
 
-                    // $.ajax({
-                    //     url: "checkPartFile",
-                    //     type: "POST",
-                    //     data: form,
-                    //     async: false,        //异步
-                    //     processData: false,  //很重要，告诉jquery不要对form进行处理
-                    //     contentType: false,  //很重要，指定为false才能形成正确的Content-Type
-                    //     success: function(data){
-                    //         var code = data.Code;
-                    //         $("#param").append("<br/>" + "action==check " + "&nbsp;&nbsp;");
-                    //         $("#param").append("index==" + nowIndex);
-                    //         if(code == 0){
-                    //             //分片文件未上传过，可以上传
-                    //             upload(form,nowIndex,shardCount,fileId)
-                    //         }else{
-                    //
-                    //             //不是0的情况下可以标记上传分片文件成功
-                    //             ++succeed;
-                    //             $("#output").text(succeed + " / " + shardCount)
-                    //             if (succeed  == shardCount) {
-                    //                 dataEnd = new Date();
-                    //                 $("#fileId").append(fileId);
-                    //                 $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
-                    //                 $("#useTime").append("s")
-                    //                 $("#param").append("<br/>" + "上传成功！");
-                    //             }
-                    //         }
-                    //     },error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    //         alert("服务器出错!");
-                    //     }
-                    // })
+                    $.ajax({
+                        url: "checkPartFile",
+                        type: "POST",
+                        data: form,
+                        async: true,        //异步
+                        processData: false,  //很重要，告诉jquery不要对form进行处理
+                        contentType: false,  //很重要，指定为false才能形成正确的Content-Type
+                        success: function(result){
+                            var code = result.Code;
+                            $("#param").append("<br/>" + "action==check " + "&nbsp;&nbsp;");
+                            $("#param").append("index==" + nowIndex);
+                            if(code == 0){
+                                //分片文件未上传过，可以上传
+                                form.append("data", data);
+                                upload(form,nowIndex,shardCount,fileId)
+                            }else{
+
+                                //不是0的情况下可以标记上传分片文件成功
+                                ++succeed;
+                                $("#output").text(succeed + " / " + shardCount)
+                                if (succeed  == shardCount) {
+                                    dataEnd = new Date();
+                                    $("#fileId").append(fileId);
+                                    $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
+                                    $("#useTime").append("s")
+                                    $("#param").append("<br/>" + "上传成功！");
+                                }
+                            }
+                        },error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            alert("服务器出错!");
+                        }
+                    })
                 });
             }
         }
@@ -150,7 +152,7 @@
                 processData: false,  //很重要，告诉jquery不要对form进行处理
                 contentType: false,  //很重要，指定为false才能形成正确的Content-Type
                 success: function (data) {
-                    console.log("上传分片文件result:",data)
+                    console.log("上传分片文件index：" + index + "，result:",data)
                     var code = data.Code;
                     if(code == 0){
                         $("#param").append("<br/>" + "action==upload " + "&nbsp;&nbsp;");
