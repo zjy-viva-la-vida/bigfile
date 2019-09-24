@@ -2,6 +2,7 @@ package com.supereal.bigfile.Singleton;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.supereal.bigfile.form.FileForm;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,7 +23,7 @@ public class FileSingleton {
          */
         private static FileSingleton instance = new FileSingleton();
         private static ConcurrentLinkedQueue<String> stringQueueList = new ConcurrentLinkedQueue();
-        private static ConcurrentLinkedQueue<JSONObject> objectQueueList = new ConcurrentLinkedQueue();
+        private static ConcurrentLinkedQueue<FileForm> fileFormList = new ConcurrentLinkedQueue();
         private static boolean flag = true;
 
         //用来记录分块文件上传的数
@@ -44,8 +45,8 @@ public class FileSingleton {
         return SingletonHolder.stringQueueList;
     }
 
-    public ConcurrentLinkedQueue<JSONObject> getObjectQueueList(){
-        return SingletonHolder.objectQueueList;
+    public ConcurrentLinkedQueue<FileForm> getFileFormQueueList(){
+        return SingletonHolder.fileFormList;
     }
 
     public boolean getFlag(){
@@ -58,9 +59,9 @@ public class FileSingleton {
         return result;
     }
 
-    public ConcurrentLinkedQueue<JSONObject> addObjectToQueue(JSONObject json){
-        ConcurrentLinkedQueue<JSONObject> result = getObjectQueueList();
-        result.offer(json);
+    public ConcurrentLinkedQueue<FileForm> addFileFormToQueue(FileForm form){
+        ConcurrentLinkedQueue<FileForm> result = getFileFormQueueList();
+        result.offer(form);
         return result;
     }
 

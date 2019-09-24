@@ -1,6 +1,7 @@
 package com.supereal.bigfile.form;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Create by tianci
@@ -26,4 +27,6 @@ public class FileForm {
     private String action;
 
     private String partMd5;
+
+    private MultipartFile data;
 }

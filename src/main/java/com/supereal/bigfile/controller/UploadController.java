@@ -1,5 +1,6 @@
 package com.supereal.bigfile.controller;
 
+import com.supereal.bigfile.Singleton.FileSingleton;
 import com.supereal.bigfile.form.FileForm;
 import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.service.UploadService;
@@ -39,17 +40,14 @@ public class UploadController {
 
     @PostMapping("/checkPartFile")
     public Result checkPartFile(@Valid FileForm form) {
-
         return uploadService.checkPartFileIsExist(form,true);
 
     }
 
     @PostMapping("/uploadPartFile")
-    public Result upload(@Valid FileForm form,@RequestParam(value = "data", required = false)MultipartFile multipartFile) {
-
-
+    public Result upload(@Valid FileForm form) {
         try {
-            Result result = uploadService.realUpload(form, multipartFile);
+            Result result = uploadService.realUpload(form, form.getData());
             return result;
         } catch (Exception e) {
             e.printStackTrace();
