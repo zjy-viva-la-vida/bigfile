@@ -62,7 +62,12 @@ public class UploadFileServiceImpl implements UploadFileService {
         JSONObject json = new JSONObject();
         json.put("fileId", fileId);
         json.put("date", simpleDateFormat.format(new Date()));
-        return Result.ok(json);
+        if(uploadFile == null){
+            return Result.ok(json);
+        }else{
+            return Result.errorResult(json);
+        }
+
     }
 
     @Override

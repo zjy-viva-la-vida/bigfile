@@ -4,6 +4,7 @@
     <title>HTML5大文件分片上传示例</title>
     <script src="http://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
     <script src="../static/js/md5.js"></script>
+
     <script type="text/javascript">
 
         var shardSize = 20 * 1024 * 1024;    //以10MB为一个分片
@@ -15,6 +16,12 @@
             init: function () {
                 $("#upload").click(function () {
                     dataBegin = new Date();
+                    succeed = 0;
+                    $("#output").text("");
+                    $("#useTime").text("");
+                    $("#fileId").text("");
+                    $("#param").text("上传过程：");
+
                     checkBeforeUpload();
                 });
             }
@@ -56,7 +63,7 @@
                             readyUpload(fileId,md5,data.Result.date);
                         } else{
                             //文件已经上传过
-                            alert("文件已经上传过,秒传了！！");
+                            alert("文件已经上传过,不需要重复上传！！");
                         }
                     },error: function(XMLHttpRequest, textStatus, errorThrown) {
                         alert("服务器出错!");
@@ -64,7 +71,7 @@
                 })
             })
         };
-        
+
         function readyUpload(fileId, md5, date) {
             var file = $("#file")[0].files[0];  //文件对象
             var name = file.name;
@@ -115,20 +122,22 @@
                             var code = result.Code;
                             $("#param").append("<br/>" + "action==check " + "&nbsp;&nbsp;");
                             $("#param").append("index==" + nowIndex);
+                            //显示提示信息
+                            $("#fileId").text("文件ID：" + fileId);
+                            dataEnd = new Date();
+                            $("#useTime").text("共耗时：" + (dataEnd.getTime() - dataBegin.getTime())/1000 + "秒");
                             if(code == 0){
                                 //分片文件未上传过，可以上传
                                 form.append("data", data);
                                 upload(form,nowIndex,shardCount,fileId)
                             }else{
-
                                 //不是0的情况下可以标记上传分片文件成功
                                 ++succeed;
                                 $("#output").text(succeed + " / " + shardCount)
                                 if (succeed  == shardCount) {
                                     dataEnd = new Date();
-                                    $("#fileId").append(fileId);
-                                    $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
-                                    $("#useTime").append("s")
+                                    $("#fileId").text("文件ID：" + fileId);
+                                    $("#useTime").text("共耗时：" + (dataEnd.getTime() - dataBegin.getTime())/1000 + "秒");
                                     $("#param").append("<br/>" + "上传成功！");
                                 }
                             }
@@ -159,11 +168,17 @@
                         $("#param").append("index==" + index);
                         ++succeed;
                         $("#output").text(succeed + " / " + shardCount)
+
+                        //显示提示信息
+                        $("#fileId").text("文件ID：" + fileId);
+                        dataEnd = new Date();
+                        $("#useTime").text("共耗时：" + (dataEnd.getTime() - dataBegin.getTime())/1000 + "秒");
+
                         if (succeed  == shardCount) {
                             dataEnd = new Date();
-                            $("#fileId").append(fileId);
-                            $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
-                            $("#useTime").append("s")
+                            // $("#fileId").append(fileId);
+                            // $("#useTime").append((dataEnd.getTime() - dataBegin.getTime())/1000);
+                            // $("#useTime").append("s")
                             $("#param").append("<br/>" + "上传成功！");
                         }
                     }
@@ -173,19 +188,26 @@
                 }
             });
         }
+
+
+
+
     </script>
 </head>
 
 <body>
 
+
+
+
 <input type="file" id="file" />
-<button id="upload">上传</button>
+<button id="upload">开始上传</button>
 <br/><br/>
 <span style="font-size:16px">上传进度：</span><span id="output" style="font-size:16px"></span>
-<span id="useTime" style="font-size:16px;margin-left:20px;">上传时间：</span>
-<span id="fileId" style="font-size:16px;margin-left:20px;">文件ID：</span>
+<span id="useTime" style="font-size:16px;margin-left:20px;"></span>
+<span id="fileId" style="font-size:16px;margin-left:20px;"></span>
 <br/><br/>
-<span id="param" style="font-size:16px">上传过程：</span>
+<span id="param" style="font-size:16px"></span>
 
 </body>
 </html>
