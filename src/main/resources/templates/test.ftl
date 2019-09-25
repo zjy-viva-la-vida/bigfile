@@ -33,7 +33,7 @@
             form.append("name", name);
             form.append("size", size);
             $.ajax({
-                url: "uploadAAA",
+                url: "uploadTest",
                 type: "POST",
                 data: form,
                 async: true,        //异步
@@ -41,7 +41,7 @@
                 contentType: false,  //很重要，指定为false才能形成正确的Content-Type
                 success: function (data) {
                     console.log("data:",data)
-
+                    $("#param").append("<br/>" + "上传成功！");
                 }, error: function (XMLHttpRequest, textStatus, errorThrown) {
                     alert("服务器出错!");
                 }

@@ -11,6 +11,7 @@ import com.supereal.bigfile.repository.UploadFileRepository;
 import com.supereal.bigfile.service.UploadService;
 import com.supereal.bigfile.utils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +42,11 @@ import java.util.concurrent.TimeUnit;
 public class UploadServiceImpl implements UploadService {
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+
+    /**
+     * 在校验分片文件是否上传过时，如果不做个判断，如果分片都上传过，会不断去重新合并
+     */
+    private static JSONObject combineJsonFlag = new JSONObject();
 
     @Autowired
     UploadFileRepository uploadFileRepository;
@@ -73,7 +79,7 @@ public class UploadServiceImpl implements UploadService {
             File file = new File(saveDirectory, fileId + "_" + index);
             if (!file.exists()) {
                 long end = System.currentTimeMillis();
-                log.info("完成校验>>>>>>>1111index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
+                log.info("完成校验1111，分片文件不存在>>>>>>>>>>index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
                 return Result.ok("分片文件不存在，可以直接上传");
             }
             //获取分片文件的md5
@@ -82,7 +88,9 @@ public class UploadServiceImpl implements UploadService {
                 log.info("前端传过来的文件md5:" + partMd5 + ",获取本地文件的md5:" + md5Str);
                 md5Str = "0" + md5Str;
             }
-            if (combineFlag) {
+            String fileIdFlag = combineJsonFlag.getString(fileId);
+            log.error("判断fileId:" + fileId + ",是否可以执行合并操作标记值：" + fileIdFlag);
+            if (combineFlag && StringUtils.isBlank(fileIdFlag)) {
                 //异步拼接所有文件任务
                 ThreadUtil.run(() -> {
                     //如果所有分片文件都存在，则执行合并分片文件操作
@@ -92,12 +100,12 @@ public class UploadServiceImpl implements UploadService {
             if (md5Str != null && md5Str.equals(partMd5)) {
                 //分片已上传过
                 long end = System.currentTimeMillis();
-                log.info("完成校验>>>>>>>>222index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
+                log.info("完成校验22222,该分片文件已上传过>>>>>>>>>>>index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
                 return Result.error("该分片文件已上传过");
             } else {
                 //分片未上传
                 long end = System.currentTimeMillis();
-                log.info("完成校验>>>>>>>>>333index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
+                log.info("完成校验3333,该分片上传过，但和服务器不匹配，需要重新上传>>>>>>>>>index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
                 return Result.ok("该分片文件未上传过，可以执行上传");
             }
         } catch (Exception e) {
@@ -171,7 +179,7 @@ public class UploadServiceImpl implements UploadService {
             saveUploadFile(form, saveDirectory,1,null);
             try {
                 multipartFile.transferTo(new File(saveDirectory, fileId + "_" + index));
-                //开一个线程单独去执行合并文件操作,下面方法会做校验是否一定合并
+                //开一个线程单独去执行合并文件操作,下面方法会做校验是否一定合并,上传文件后需要重新执行合并文件
                 ThreadUtil.run(() -> {
                     combineAllFile(form);
                 });
@@ -187,9 +195,11 @@ public class UploadServiceImpl implements UploadService {
         } else {
             //执行这一步的目的就是防止前端不执行校验文件操作，如果分片文件都已上传，前端不做校验的话就不会拼接分片
             //开一个线程单独去执行合并文件操作
-            ThreadUtil.run(() -> {
-                combineAllFile(form);
-            });
+            if(StringUtils.isBlank(combineJsonFlag.getString(fileId))){
+                ThreadUtil.run(() -> {
+                    combineAllFile(form);
+                });
+            }
             long end = System.currentTimeMillis();
             log.info("文件分片已存在，不再上传，尝试合并文件操作，index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
             return Result.ok("分片文件已存在！");
@@ -200,6 +210,7 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public synchronized Result combineAllFile(FileForm form) {
         try {
+            combineJsonFlag.put(form.getFileId(),form.getFileId());
             String fileName = form.getName();
             String suffix = NameUtil.getExtensionName(fileName);
 
@@ -211,10 +222,10 @@ public class UploadServiceImpl implements UploadService {
                 finalFile.delete();
             }
             int fileCount = FileUtil.getPathFileCount(saveDirectory, form.getFileId());
-            log.info("合并文件方法，校验是否符合合并条件，fileCount:" + fileCount + ",total：" + form.getTotal() + ",index:" + form.getIndex());
+            log.info("合并文件方法，校验合并文件条件，fileCount:" + fileCount + ",total：" + form.getTotal() + ",index:" + form.getIndex());
             if (fileCount > 0 && fileCount == total) {
                 //只要执行合并操作了，就要把单例中记录的数据删掉
-                log.info("检验文件后,已上传文件数符合文件总数，开始执行合并文件操作，fileId:" + form.getFileId() + ",下的文件列表总数:" + fileCount + ",和total:" + total + "，开始合并文件");
+                log.info("检验文件后,已上传文件数符合文件总数，开始执行合并文件操作，fileId:" + form.getFileId() + ",下的文件列表总数:" + fileCount + ",和total:" + total);
                 //分块全部上传完毕,合并
                 File newFile = new File(saveDirectory, form.getFileId() + "." + suffix);
                 //文件追加写入
@@ -233,6 +244,17 @@ public class UploadServiceImpl implements UploadService {
                 temp.close();
                 outputStream.close();
                 saveUploadFile(form,saveDirectory,2,total);
+                ThreadUtil.run(()->{
+                    try{
+                        Thread.sleep(300000);
+                        log.error("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
+                        combineJsonFlag.remove(form.getFileId());
+                    }catch (Exception e){
+                        log.error("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
+                        combineJsonFlag.remove(form.getFileId());
+                    }
+                });
+
                 return Result.ok("所有分片上传完成，文件合并成功");
 
             } else {
@@ -240,6 +262,7 @@ public class UploadServiceImpl implements UploadService {
                 return Result.error("获取fileId:" + form.getFileId() + ",下的文件为空，或该文件列表总数:" + fileCount + ",和total:" + total + "不一致");
             }
         } catch (Exception e) {
+            combineJsonFlag.remove(form.getFileId());
             ExceptionRes res = ExceptionResponseUtil.spliceMsgFromException(e);
             throw new BusinessException("合并文件出错：" + res.getMsg());
         }

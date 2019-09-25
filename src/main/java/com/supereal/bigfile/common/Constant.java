@@ -9,4 +9,7 @@ import java.io.File;
 public class Constant {
 
     public static final String PATH = System.getProperty("user.dir") + File.separator + "file";
+
+    // 请求头的header字段
+    public static final String JWT_HEADER_NAME = "Authorization";
 }

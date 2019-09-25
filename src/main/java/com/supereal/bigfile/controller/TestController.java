@@ -32,15 +32,13 @@ import java.util.concurrent.TimeUnit;
 public class TestController {
 
 
-
-    @GetMapping("/testThread2")
+    @GetMapping("/testThread")
     @ResponseBody
     public String testThread2(){
         ThreadPoolExecutor startThreadPool = new ThreadPoolExecutor(15, 100, 1, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         log.info("启动线程前，当前线程总数为：" + bean.getThreadCount());
         startThreadPool.execute(()->{
-
             for(int i=1;i<=10;i++){
                 try {
                     Thread.sleep(2000);
@@ -49,8 +47,6 @@ public class TestController {
                 }
                 log.info("第 " + i + " 次执行，当前线程总数为：" + bean.getThreadCount());
             }
-
-
         });
 
         //判断线程是否执行完毕
@@ -78,13 +74,10 @@ public class TestController {
         return new ModelAndView("test");
     }
 
-    @PostMapping("/uploadAAA")
+    @PostMapping("/uploadTest")
     public Result upload(@Valid FileForm form, @RequestParam(value = "file", required = false) MultipartFile multipartFile) {
-
-
         try {
             multipartFile.transferTo(new File(Constant.PATH,form.getName()));
-
             return Result.ok();
         } catch (Exception e) {
             e.printStackTrace();

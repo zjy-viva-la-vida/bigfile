@@ -28,6 +28,9 @@ public class FileSingleton {
 
         //用来记录分块文件上传的数
         private static JSONObject fileIds = new JSONObject();
+
+        //用来记录分块文件上传的数
+        private static JSONObject fileIdFlags = new JSONObject();
     }
 
 
@@ -73,6 +76,9 @@ public class FileSingleton {
     public JSONObject getFileIds(){
         return SingletonHolder.fileIds;
     }
+    public JSONObject getFileIdFlags(){
+        return SingletonHolder.fileIdFlags;
+    }
 
     public Integer getFileIdsIndex(String fileId){
         JSONObject fileIds = getFileIds();
@@ -83,6 +89,10 @@ public class FileSingleton {
 
     public synchronized void setFileIds(JSONObject fileIds){
         SingletonHolder.fileIds = fileIds;
+    }
+
+    public synchronized void setFileIdFlags(JSONObject fileIdFlags){
+        SingletonHolder.fileIdFlags = fileIdFlags;
     }
 
     public synchronized void setFileIdsIndex(String fileId){
@@ -97,5 +107,21 @@ public class FileSingleton {
     public void removeFileId(String fileId){
         JSONObject json = getFileIds();
         json.remove(fileId);
+    }
+
+    public boolean getFileIdIsCombine(String fileId){
+        JSONObject json = getFileIdFlags();
+        boolean fileIdFlag = json.getBoolean(fileId);
+        return fileIdFlag;
+    }
+
+    public synchronized void setFileIdIsCombine(String fileId,boolean fileIdFlag){
+        JSONObject json = getFileIdFlags();
+        if(fileIdFlag){
+            json.put(fileId,fileIdFlag);
+        }else{
+            json.remove(fileId);
+        }
+
     }
 }
