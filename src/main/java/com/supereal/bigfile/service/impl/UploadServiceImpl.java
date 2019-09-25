@@ -1,10 +1,10 @@
-package com.supereal.bigfile.service.Impl;
+package com.supereal.bigfile.service.impl;
 
 import com.supereal.bigfile.common.Constant;
 import com.supereal.bigfile.dataobject.UploadFile;
 import com.supereal.bigfile.form.FileForm;
 import com.supereal.bigfile.repository.UploadFileRepository;
-import com.supereal.bigfile.service.UploadFileService;
+import com.supereal.bigfile.service.UploadService;
 import com.supereal.bigfile.utils.FileMd5Util;
 import com.supereal.bigfile.utils.KeyUtil;
 import com.supereal.bigfile.utils.NameUtil;
@@ -24,7 +24,7 @@ import java.util.Map;
  */
 
 @Service
-public class UploadFileServiceImpl implements UploadFileService {
+public class UploadServiceImpl implements UploadService {
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 

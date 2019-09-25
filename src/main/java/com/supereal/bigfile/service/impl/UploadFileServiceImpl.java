@@ -1,4 +1,4 @@
-package com.supereal.bigfile.service.Impl;
+package com.supereal.bigfile.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.supereal.bigfile.singleton.FileSingleton;
@@ -8,7 +8,7 @@ import com.supereal.bigfile.dataobject.UploadFile;
 import com.supereal.bigfile.exception.BusinessException;
 import com.supereal.bigfile.form.FileForm;
 import com.supereal.bigfile.repository.UploadFileRepository;
-import com.supereal.bigfile.service.UploadService;
+import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.management.ManagementFactory;
@@ -39,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-public class UploadServiceImpl implements UploadService {
+public class UploadFileServiceImpl implements UploadFileService {
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 

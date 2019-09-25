@@ -1,7 +1,7 @@
 package com.supereal.bigfile.controller;
 
 import com.supereal.bigfile.form.FileForm;
-import com.supereal.bigfile.service.UploadService;
+import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.utils.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import javax.validation.Valid;
 public class UploadFileController {
 
     @Autowired
-    UploadService uploadService;
+    UploadFileService uploadService;
 
 
     @GetMapping("/open")

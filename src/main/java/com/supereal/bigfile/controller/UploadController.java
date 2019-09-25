@@ -1,7 +1,7 @@
 package com.supereal.bigfile.controller;
 
 import com.supereal.bigfile.form.FileForm;
-import com.supereal.bigfile.service.UploadFileService;
+import com.supereal.bigfile.service.UploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class UploadController {
 
     @Autowired
-    UploadFileService uploadFileService;
+    UploadService uploadFileService;
 
 
     @GetMapping("/open")
