@@ -1,6 +1,6 @@
 package com.supereal.bigfile.repository;
 
-import com.supereal.bigfile.dataobject.UploadFile;
+import com.supereal.bigfile.entity.UploadFile;
 import com.supereal.bigfile.utils.KeyUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,8 +8,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import static org.junit.Assert.*;
 
 /**
  * Create by tianci

@@ -1,12 +1,12 @@
 package com.supereal.bigfile.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.supereal.bigfile.singleton.FileSingleton;
+import com.supereal.bigfile.common.singleton.FileSingleton;
 import com.supereal.bigfile.common.Constant;
 import com.supereal.bigfile.common.ErrorCode;
-import com.supereal.bigfile.dataobject.UploadFile;
+import com.supereal.bigfile.entity.UploadFile;
 import com.supereal.bigfile.exception.BusinessException;
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.repository.UploadFileRepository;
 import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.utils.*;
@@ -246,10 +246,10 @@ public class UploadFileServiceImpl implements UploadFileService {
                 ThreadUtil.run(()->{
                     try{
                         Thread.sleep(300000);
-                        log.error("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
+                        log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
                         combineJsonFlag.remove(form.getFileId());
                     }catch (Exception e){
-                        log.error("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
+                        log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
                         combineJsonFlag.remove(form.getFileId());
                     }
                 });

@@ -1,4 +1,4 @@
-package com.supereal.bigfile.dataobject;
+package com.supereal.bigfile.entity;
 
 import lombok.Data;
 
@@ -7,8 +7,9 @@ import javax.persistence.Id;
 import java.util.Date;
 
 /**
- * Create by tianci
+ *
  * 2019/1/10 14:38
+ * @author bitmain
  */
 
 @Entity

@@ -2,15 +2,13 @@ package com.supereal.bigfile.controller;
 
 
 import com.supereal.bigfile.common.Constant;
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.utils.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -71,7 +69,7 @@ public class TestController {
     @GetMapping("/open")
     public ModelAndView open() {
 
-        return new ModelAndView("test");
+        return new ModelAndView("original/test");
     }
 
     @PostMapping("/uploadTest")

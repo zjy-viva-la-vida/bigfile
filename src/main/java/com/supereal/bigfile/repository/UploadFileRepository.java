@@ -1,6 +1,6 @@
 package com.supereal.bigfile.repository;
 
-import com.supereal.bigfile.dataobject.UploadFile;
+import com.supereal.bigfile.entity.UploadFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

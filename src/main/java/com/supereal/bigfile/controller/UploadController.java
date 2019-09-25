@@ -1,6 +1,6 @@
 package com.supereal.bigfile.controller;
 
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.service.UploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,8 +11,9 @@ import javax.validation.Valid;
 import java.util.Map;
 
 /**
- * Create by tianci
+ * 刚类是最原始的方法，太复杂了
  * 2019/1/10 15:41
+ * @author bitmain
  */
 @RestController
 @RequestMapping("/file")
@@ -25,7 +26,7 @@ public class UploadController {
     @GetMapping("/open")
     public ModelAndView open() {
 
-        return new ModelAndView("upload");
+        return new ModelAndView("original/upload");
     }
 
     @PostMapping("/isUpload")

@@ -3,6 +3,9 @@ package com.supereal.bigfile;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * @author bitmain
+ */
 @SpringBootApplication
 public class BigfileApplication {
 

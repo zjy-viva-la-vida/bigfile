@@ -1,11 +1,7 @@
 package com.supereal.bigfile.service;
 
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.utils.Result;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * Create by tianci

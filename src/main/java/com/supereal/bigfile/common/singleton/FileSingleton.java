@@ -1,8 +1,8 @@
-package com.supereal.bigfile.singleton;
+package com.supereal.bigfile.common.singleton;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentLinkedQueue;

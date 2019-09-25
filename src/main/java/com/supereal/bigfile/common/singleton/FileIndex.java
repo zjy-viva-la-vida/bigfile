@@ -1,4 +1,4 @@
-package com.supereal.bigfile.singleton;
+package com.supereal.bigfile.common.singleton;
 
 import lombok.Data;
 

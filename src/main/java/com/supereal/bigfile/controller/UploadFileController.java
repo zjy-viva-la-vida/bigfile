@@ -1,6 +1,6 @@
 package com.supereal.bigfile.controller;
 
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.utils.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import javax.validation.Valid;
 /**
  * Create by tianci
  * 2019/1/10 15:41
+ * @author bitmain
  */
 @RestController
 @RequestMapping("/uploadFile")

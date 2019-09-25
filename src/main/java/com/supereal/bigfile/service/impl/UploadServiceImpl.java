@@ -1,8 +1,8 @@
 package com.supereal.bigfile.service.impl;
 
 import com.supereal.bigfile.common.Constant;
-import com.supereal.bigfile.dataobject.UploadFile;
-import com.supereal.bigfile.form.FileForm;
+import com.supereal.bigfile.entity.UploadFile;
+import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.repository.UploadFileRepository;
 import com.supereal.bigfile.service.UploadService;
 import com.supereal.bigfile.utils.FileMd5Util;

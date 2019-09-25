@@ -1,4 +1,4 @@
-package com.supereal.bigfile.form;
+package com.supereal.bigfile.vo;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
