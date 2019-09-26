@@ -13,6 +13,8 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, String> 
 
     UploadFile findUploadFileById(String id);
 
+    UploadFile findUploadFileByNameAndStatus(String fileName,Integer status);
+
     UploadFile findUploadFileByName(String fileName);
 
     void deleteByFileMd5(String fileMd5);

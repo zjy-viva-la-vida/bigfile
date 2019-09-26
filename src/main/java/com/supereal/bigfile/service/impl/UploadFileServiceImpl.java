@@ -5,6 +5,7 @@ import com.supereal.bigfile.common.singleton.FileSingleton;
 import com.supereal.bigfile.common.Constant;
 import com.supereal.bigfile.common.ErrorCode;
 import com.supereal.bigfile.entity.UploadFile;
+import com.supereal.bigfile.enums.FileStatus;
 import com.supereal.bigfile.exception.BusinessException;
 import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.repository.UploadFileRepository;
@@ -65,7 +66,10 @@ public class UploadFileServiceImpl implements UploadFileService {
         if(uploadFile == null){
             return Result.ok(json);
         }else{
-            return Result.errorResult(json);
+            if(FileStatus.FINISH.getCode() == uploadFile.getStatus()){
+                return Result.errorResult(json);
+            }
+            return Result.ok(json);
         }
 
     }
@@ -180,7 +184,8 @@ public class UploadFileServiceImpl implements UploadFileService {
             if (file.exists()) {
                 file.delete();
             }
-            saveUploadFile(form, saveDirectory,1,null);
+            int fileCount = FileUtil.getPathFileCount(saveDirectory, fileId);
+            saveUploadFile(form, saveDirectory,FileStatus.NOT_FINISH.getCode(),fileCount + 1);
             try {
                 multipartFile.transferTo(new File(saveDirectory, fileId + "_" + index));
                 //开一个线程单独去执行合并文件操作,下面方法会做校验是否一定合并,上传文件后需要重新执行合并文件
@@ -244,10 +249,11 @@ public class UploadFileServiceImpl implements UploadFileService {
                         outputStream.write(byt, 0, len);
                     }
                 }
+                //只有正常合并文件后采取更新文件状态
+                saveUploadFile(form,saveDirectory, FileStatus.FINISH.getCode(),total);
                 //关闭流
                 temp.close();
                 outputStream.close();
-                saveUploadFile(form,saveDirectory,2,total);
                 ThreadUtil.run(()->{
                     try{
                         Thread.sleep(300000);
