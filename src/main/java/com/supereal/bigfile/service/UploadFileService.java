@@ -2,6 +2,7 @@ package com.supereal.bigfile.service;
 
 import com.supereal.bigfile.vo.FileForm;
 import com.supereal.bigfile.utils.Result;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Create by tianci
@@ -22,8 +23,9 @@ public interface UploadFileService {
      * @param saveDirectory
      * @param status
      * @param fileIndex
+     * @param fastPath
      */
-    void saveUploadFile(FileForm form, String saveDirectory,Integer status,Integer fileIndex);
+    void saveUploadFile(FileForm form, String saveDirectory,Integer status,Integer fileIndex,String fastPath);
 
 
     /**
@@ -54,5 +56,28 @@ public interface UploadFileService {
      */
     Result realUploadByQueue();
 
+
+    /**
+     * 测试直接上传文件到fastDfs
+     * @param file
+     * @param suffix
+     * @return
+     */
+    Result uploadToFastDfs(MultipartFile file,String suffix);
+
+    /**
+     * 测试直接删除fastDfs文件
+     * @param group
+     * @param path
+     * @return
+     */
+    Result deleteFile(String group,String path);
+
+    /**
+     * 测试网络文件是否存在
+     * @param url
+     * @return
+     */
+    boolean checkFastFileIsExist(String url);
 
 }

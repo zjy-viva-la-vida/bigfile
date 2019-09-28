@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS  `upload_file`;
 CREATE TABLE `upload_file` (
   `id` varchar(64) NOT NULL,
   `path` varchar(1024) NOT NULL COMMENT '文件存储路径',
+  `fast_path` varchar(1024) NOT NULL COMMENT 'fastdfs文件存储路径',
   `size` varchar(64) NOT NULL COMMENT '文件大小',
   `suffix` varchar(16) NOT NULL COMMENT '文件后缀',
   `total_block` int(11) NOT NULL COMMENT '文件一共分成了多少块',

@@ -1,5 +1,6 @@
 package com.supereal.bigfile.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.supereal.bigfile.common.singleton.FileSingleton;
 import com.supereal.bigfile.common.Constant;
@@ -13,15 +14,26 @@ import com.supereal.bigfile.service.UploadFileService;
 import com.supereal.bigfile.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.csource.fastdfs.TrackerClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -41,6 +53,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UploadFileServiceImpl implements UploadFileService {
 
+    @Resource
+    private TrackerClient trackerClient;
+
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
     /**
@@ -50,6 +65,12 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Autowired
     UploadFileRepository uploadFileRepository;
+
+    @Value("${fastdfs.http_url}")
+    private String httUrl;
+
+    @Resource(name = "remoteRestTemplate")
+    private RestTemplate remoteRestTemplate;
 
     @Override
     public Result findByFileMd5(FileForm form) {
@@ -63,10 +84,10 @@ public class UploadFileServiceImpl implements UploadFileService {
         JSONObject json = new JSONObject();
         json.put("fileId", fileId);
         json.put("date", simpleDateFormat.format(new Date()));
-        if(uploadFile == null){
+        if (uploadFile == null) {
             return Result.ok(json);
-        }else{
-            if(FileStatus.FINISH.getCode() == uploadFile.getStatus()){
+        } else {
+            if (FileStatus.FINISH.getCode() == uploadFile.getStatus()) {
                 return Result.errorResult(json);
             }
             return Result.ok(json);
@@ -125,7 +146,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public void saveUploadFile(FileForm form, String saveDirectory,Integer status,Integer fileIndex) {
+    public void saveUploadFile(FileForm form, String saveDirectory, Integer status, Integer fileIndex, String fastPath) {
         try {
             Integer total = Integer.valueOf(form.getTotal());
             String suffix = NameUtil.getExtensionName(form.getName());
@@ -142,12 +163,16 @@ public class UploadFileServiceImpl implements UploadFileService {
             uploadFile.setFileMd5(form.getMd5());
             uploadFile.setSuffix(suffix);
             uploadFile.setPath(filePath);
+            if(StringUtils.isBlank(fastPath)){
+                fastPath = uploadFile.getFastPath();
+            }
+            uploadFile.setFastPath(fastPath);
             uploadFile.setSize(form.getSize());
             uploadFile.setDeleted(0);
             uploadFile.setTotalBlock(total);
             uploadFile.setUpdateTime(new Date());
             //并发的时候该数据可能不准确，但当去拼接文件后会改成正确的数字
-            if(fileIndex == null){
+            if (fileIndex == null) {
                 fileIndex = uploadFile.getFileIndex();
                 fileIndex = (fileIndex == null ? 0 : fileIndex) + 1;
             }
@@ -185,7 +210,7 @@ public class UploadFileServiceImpl implements UploadFileService {
                 file.delete();
             }
             int fileCount = FileUtil.getPathFileCount(saveDirectory, fileId);
-            saveUploadFile(form, saveDirectory,FileStatus.NOT_FINISH.getCode(),fileCount + 1);
+            saveUploadFile(form, saveDirectory, FileStatus.NOT_FINISH.getCode(), fileCount + 1, null);
             try {
                 multipartFile.transferTo(new File(saveDirectory, fileId + "_" + index));
                 //开一个线程单独去执行合并文件操作,下面方法会做校验是否一定合并,上传文件后需要重新执行合并文件
@@ -204,7 +229,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         } else {
             //执行这一步的目的就是防止前端不执行校验文件操作，如果分片文件都已上传，前端不做校验的话就不会拼接分片
             //开一个线程单独去执行合并文件操作
-            if(StringUtils.isBlank(combineJsonFlag.getString(fileId))){
+            if (StringUtils.isBlank(combineJsonFlag.getString(fileId))) {
                 ThreadUtil.run(() -> {
                     combineAllFile(form);
                 });
@@ -219,7 +244,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public synchronized Result combineAllFile(FileForm form) {
         try {
-            combineJsonFlag.put(form.getFileId(),form.getFileId());
+            combineJsonFlag.put(form.getFileId(), form.getFileId());
             String fileName = form.getName();
             String suffix = NameUtil.getExtensionName(fileName);
 
@@ -249,17 +274,38 @@ public class UploadFileServiceImpl implements UploadFileService {
                         outputStream.write(byt, 0, len);
                     }
                 }
-                //只有正常合并文件后采取更新文件状态
-                saveUploadFile(form,saveDirectory, FileStatus.FINISH.getCode(),total);
                 //关闭流
                 temp.close();
                 outputStream.close();
-                ThreadUtil.run(()->{
-                    try{
+
+                String fastPath = null;
+                UploadFile uploadFile = uploadFileRepository.findUploadFileById(form.getFileId());
+                if (uploadFile == null) {
+                    uploadFile = new UploadFile();
+                }
+                if (!checkFastFileIsExist(uploadFile.getFastPath())) {
+                    FileInputStream inputStream = new FileInputStream(finalFile);
+                    MultipartFile multipartFile = new MockMultipartFile(finalFile.getName(), inputStream);
+                    Result<String> result = uploadToFastDfs(multipartFile, suffix);
+                    fastPath = result.getResult();
+                    if (StringUtils.isBlank(fastPath)) {
+                        log.error("文件fileId:" + form.getFileId() + "，往fastDFS存文件失败");
+                    } else {
+                        log.info("文件fileId:" + form.getFileId() + "，往fastDFS存文件成功");
+                    }
+                } else {
+                    fastPath = uploadFile.getFastPath();
+                    log.info("文件fileId:" + form.getFileId() + "，已存在fastDFS，不重复上传");
+                }
+                //只有正常合并文件后才去更新文件状态
+                saveUploadFile(form, saveDirectory, FileStatus.FINISH.getCode(), total, fastPath);
+
+                ThreadUtil.run(() -> {
+                    try {
                         Thread.sleep(300000);
                         log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
                         combineJsonFlag.remove(form.getFileId());
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
                         combineJsonFlag.remove(form.getFileId());
                     }
@@ -320,5 +366,59 @@ public class UploadFileServiceImpl implements UploadFileService {
         return Result.ok("文件上传中，请稍后");
     }
 
+    /**
+     * 测试直接上传文件到fastDfs
+     *
+     * @param file
+     * @return
+     */
+    @Override
+    public Result uploadToFastDfs(MultipartFile file, String suffix) {
+        log.info("开始往fastDfs添加文件,fileName:" + file.getOriginalFilename() + ",date:" + DateUtil.formatDateToString(new Date()));
+        long begin = java.lang.System.currentTimeMillis();
+        String[] result = FastDFSClientUtil.uploadFile(trackerClient, file, suffix);
+        long end = java.lang.System.currentTimeMillis();
+        log.info("往fastDfs添加文件结束,fileName:" + file.getOriginalFilename() + ",共用时：" + (end - begin) / 1000D + "(秒),date:"
+                + DateUtil.formatDateToString(new Date()) + ",result:" + JSON.toJSON(result));
+        String filePath = httUrl + "/" + result[0] + "/" + result[1];
+        log.info("上传到fastDfs文件存储位置：" + filePath);
+        return Result.ok(filePath);
+    }
+
+    /**
+     * 测试直接删除fastDfs文件
+     *
+     * @param group
+     * @param path
+     * @return
+     */
+    @Override
+    public Result deleteFile(String group, String path) {
+        int row = FastDFSClientUtil.deleteFile(group, path, trackerClient);
+        log.info("删除文件，path:" + path + ",row:" + row);
+        return Result.ok(row);
+    }
+
+
+    @Override
+    public boolean checkFastFileIsExist(String urlStr) {
+        if (StringUtils.isBlank(urlStr)) {
+            return false;
+        }
+        boolean isExist = false;
+        try {
+            URL url = new URL(urlStr);
+            URLConnection conn = url.openConnection();
+            conn.getInputStream();
+            log.info("获取url:" + urlStr + " ，文件成功，文件存在");
+            isExist = true;
+        } catch (Exception e) {
+            // 获取失败
+            ExceptionRes res = ExceptionResponseUtil.spliceMsgFromException(e);
+            log.error("获取url:" + urlStr + "，文件失败：" + res.getMsg());
+            isExist = false;
+        }
+        return isExist;
+    }
 
 }

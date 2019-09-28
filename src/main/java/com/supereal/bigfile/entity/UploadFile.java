@@ -23,6 +23,9 @@ public class UploadFile {
     /**  文件路径 */
     private String path;
 
+    /**fastDfs 文件存储位置*/
+    private String fastPath;
+
     /**  文件大小 */
     private String size;
 
