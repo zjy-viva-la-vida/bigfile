@@ -245,6 +245,16 @@ public class UploadFileServiceImpl implements UploadFileService {
     public synchronized Result combineAllFile(FileForm form) {
         try {
             combineJsonFlag.put(form.getFileId(), form.getFileId());
+            ThreadUtil.run(() -> {
+                try {
+                    Thread.sleep(300000);
+                    log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
+                    combineJsonFlag.remove(form.getFileId());
+                } catch (Exception e) {
+                    log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
+                    combineJsonFlag.remove(form.getFileId());
+                }
+            });
             String fileName = form.getName();
             String suffix = NameUtil.getExtensionName(fileName);
 
@@ -299,17 +309,6 @@ public class UploadFileServiceImpl implements UploadFileService {
                 }
                 //只有正常合并文件后才去更新文件状态
                 saveUploadFile(form, saveDirectory, FileStatus.FINISH.getCode(), total, fastPath);
-
-                ThreadUtil.run(() -> {
-                    try {
-                        Thread.sleep(300000);
-                        log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记，可再次执行合并");
-                        combineJsonFlag.remove(form.getFileId());
-                    } catch (Exception e) {
-                        log.info("休眠5分钟后移除，fileId:" + form.getFileId() + ",合并标记出错：" + e.getMessage());
-                        combineJsonFlag.remove(form.getFileId());
-                    }
-                });
 
                 return Result.ok("所有分片上传完成，文件合并成功");
 
