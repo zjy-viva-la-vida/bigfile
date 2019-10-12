@@ -7,7 +7,7 @@
 
     <script type="text/javascript">
 
-        var shardSize = 20 * 1024 * 1024;    //以10MB为一个分片
+        var shardSize = 1 * 1024 * 1024;    //以10MB为一个分片
         var succeed = 0;
         var dataBegin;  //开始时间
         var dataEnd;    //结束时间
@@ -42,7 +42,8 @@
                 var md5 = hex_md5(blob);*/
 
                 var random = Math.floor(Math.random()*100000000);
-                var md5 = random;
+                /*var md5 = random;*/
+                var md5 = "75904340";
                 var name = file.name;
                 form.append("md5", md5);
                 form.append("name", name);

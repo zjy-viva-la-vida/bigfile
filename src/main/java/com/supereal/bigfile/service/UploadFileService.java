@@ -22,10 +22,9 @@ public interface UploadFileService {
      * @param form
      * @param saveDirectory
      * @param status
-     * @param fileIndex
      * @param fastPath
      */
-    void saveUploadFile(FileForm form, String saveDirectory,Integer status,Integer fileIndex,String fastPath);
+    void saveUploadFile(FileForm form, String saveDirectory,Integer status,String fastPath);
 
 
     /**
@@ -46,9 +45,10 @@ public interface UploadFileService {
     /**
      * 开始合并分片文件，合并前会做校验
      * @param form
+     * @param flag
      * @return
      */
-    Result combineAllFile(FileForm form);
+    Result combineAllFile(FileForm form,String flag);
 
     /**
      * 从队列中读取数据，上传文件，暂时未用到
