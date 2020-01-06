@@ -63,7 +63,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     /**
      * 用于记录当校验文件分片时，是否执行合并文件操作，只有校验最后一个分片时候才去执行合并
      */
-    private static ConcurrentHashMap fileIdCheckMap = new ConcurrentHashMap();
+//    private static ConcurrentHashMap fileIdCheckMap = new ConcurrentHashMap();
 
     @Autowired
     UploadFileRepository uploadFileRepository;
@@ -100,12 +100,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     @Override
     public Result checkPartFileIsExist(FileForm form, boolean combineFlag) {
         try {
-            if(combineFlag){
-                synchronized (this){
-                    fileIdCheckMap.put(form.getFileId(),fileIdCheckMap.get(form.getFileId()) == null?1:(Integer)fileIdCheckMap.get(form.getFileId())+1);
-                    log.info("fileId:" + form.getFileId() + ",已校验分片数，count:" + fileIdCheckMap.get(form.getFileId()) );
-                }
-            }
+
             long start = System.currentTimeMillis();
             String fileId = form.getFileId();
             String partMd5 = form.getPartMd5();
@@ -117,9 +112,6 @@ public class UploadFileServiceImpl implements UploadFileService {
             if (!file.exists()) {
                 long end = System.currentTimeMillis();
                 log.info("分片文件不存在，可以直接上传>>>>>>>>>>index:" + form.getIndex() + "，耗时：" + (end - start) + "毫秒");
-                if(total.equals(fileIdCheckMap.get(form.getFileId()))){
-                    fileIdCheckMap.remove(form.getFileId());
-                }
                 return Result.ok("分片文件不存在，可以直接上传");
             }
             //获取分片文件的md5
@@ -132,11 +124,11 @@ public class UploadFileServiceImpl implements UploadFileService {
 //            String fileIdFlag = combineJsonFlag.getString(fileId);
 //            log.error("判断fileId:" + fileId + ",是否可以执行合并操作标记值：" + fileIdFlag);
                 int fileCount = FileUtil.getPathFileCount(saveDirectory, form.getFileId());
-                if (combineFlag && fileCount == total && total.equals(fileIdCheckMap.get(form.getFileId()))) {
+                //TODO 前端如果不是按顺序校验，最后一个index就可能不是最后上传
+                if (combineFlag && fileCount == total && total.equals(index)) {
                     //异步拼接所有文件任务
                     ThreadUtil.run(() -> {
-                        //当校验分片文件后，如果有多个分片文件上传过，此时文件总数又和上传的总数想等就可能执行多次合并文件的操作，需要做一个fileIdCheckMap标记
-                        fileIdCheckMap.remove(form.getFileId());
+                        //当校验分片文件后，如果有多个分片文件上传过，此时文件总数又和上传的总数想等就可能执行多次合并文件的操作
                         //如果所有分片文件都存在，则执行合并分片文件操作
                         combineAllFile(form,"校验分片文件后尝试合并文件，index:" + index);
                     });
@@ -244,7 +236,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             log.error("上传文件校验后执行合并");
             //执行这一步的目的就是防止前端不执行校验文件操作，如果分片文件都已上传，前端不做校验的话就不会拼接分片
             //开一个线程单独去执行合并文件操作，TODO 如果前端不做校验直接把分片文件传过来了，我再去做校验，如果分片都存在，可能会多次合并文件
-            if (FileUtil.getPathFileCount(saveDirectory,form.getFileId()) == total && fileIdCheckMap.get(form.getFileId()) == null) {
+            if (FileUtil.getPathFileCount(saveDirectory,form.getFileId()) == total) {
                 ThreadUtil.run(() -> {
                     combineAllFile(form,"上传分片文件时，校验分片文件后尝试一次合并文件，index:" + index);
                 });

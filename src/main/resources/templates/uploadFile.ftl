@@ -79,7 +79,7 @@
             var size = file.size;
             var shardCount = Math.ceil(size / shardSize);  //文件切割的总片数
 
-            for(var index = 1;index <= shardCount;index++){
+            for(let index = 1;index <= shardCount;index++){
                 //构造一个表单，FormData是HTML5新增的,不用let的话会造成ajax不是根据for循环调用后端而变成了异步调用
                 let form = new FormData();
                 form.append("fileId", fileId);

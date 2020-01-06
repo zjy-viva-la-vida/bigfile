@@ -54,3 +54,9 @@ fastdfs:
   http_url: http://192.168.193.62:9980
   local_dir: /home/upload
 
+
+es:
+  high-rest-host: '127.0.0.1'
+  high-rest-port: '9200'
+  high-rest-schema: 'http'
+
